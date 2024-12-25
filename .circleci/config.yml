@@ -44,10 +44,9 @@ jobs:
                 
                 # Clean up unused networks and volumes
                 docker network prune -f
-                docker volume prune -f
                 
                 # Build and start the application
-                docker compose -f docker-compose.yml build --no-cache
+                docker compose -f docker-compose.yml build
                 docker compose -f docker-compose.yml up -d --scale app=3
               EOF
 
