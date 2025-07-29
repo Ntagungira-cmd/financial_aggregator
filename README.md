@@ -2,6 +2,16 @@
 
 A robust NestJS-powered web API that aggregates real-time financial data and delivers actionable insights into users’ spending patterns, currency exchange fluctuations, and stock market trends. This API is tailored for budget-conscious individuals and investors seeking smart, data-driven decision-making.
 
+# Video Overview
+Watch the video overview of the Financial Insights App to see it in action and understand its features and functionalities:
+
+[![Watch the video](https://drive.google.com/file/d/1Krt43GdVfK1o_DX8_zxratLp0k-DCzdo/view?usp=drive_link)](https://drive.google.com/file/d/1Krt43GdVfK1o_DX8_zxratLp0k-DCzdo/view?usp=drive_link)
+
+# Appliucation UI
+This is a link to the application UI, which provides a user-friendly interface for interacting with the API and visualizing financial data:
+
+[Financial Insights App UI](https://ntagungira-cmd.github.io/fnnancial-aggregator-ui/)
+
 ## 🌟 Key Features
 
 - **💱 Currency Exchange Tracker**  
