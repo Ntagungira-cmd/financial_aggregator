@@ -5,7 +5,7 @@ A robust NestJS-powered web API that aggregates real-time financial data and del
 # Video Overview
 Watch the video overview of the Financial Insights App to see it in action and understand its features and functionalities:
 
-[![Watch the video](https://drive.google.com/file/d/1Krt43GdVfK1o_DX8_zxratLp0k-DCzdo/view?usp=drive_link)](https://drive.google.com/file/d/1Krt43GdVfK1o_DX8_zxratLp0k-DCzdo/view?usp=drive_link)
+[![Watch the video](https://drive.google.com/file/d/1CDT56sLyaH1R6i1jd92JLos2NV4nAZZM/view?usp=sharing)](https://drive.google.com/file/d/1CDT56sLyaH1R6i1jd92JLos2NV4nAZZM/view?usp=sharing)
 
 # Appliucation UI
 This is a link to the application UI, which provides a user-friendly interface for interacting with the API and visualizing financial data:
