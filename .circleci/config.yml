@@ -1,0 +1,53 @@
+version: 2.1
+
+jobs:
+  build_and_test:
+    docker:
+      - image: cimg/node:22.14.0 # Use a Node.js image for building
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 28.3.3 # Specify Docker version for remote Docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: npm run build # Assuming your build script is defined in package.json
+      - run: npm test # Assuming you have tests defined
+
+  deploy:
+    docker:
+      - image: cimg/base:stable # A base image for deployment steps
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "YOUR_SSH_KEY_FINGERPRINT" # Replace with your SSH key fingerprint
+      - run:
+          name: Deploy to Kamatera
+          command: |
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} << EOF
+              cd /path/to/your/app # Change to the directory where you want to deploy
+              # Pull the latest code
+              git pull origin main # Or your deployment branch
+              # Build and restart Docker containers using the new 'docker compose' command
+              docker compose -f docker-compose.yml build --no-cache
+              docker compose -f docker-compose.yml up -d --remove-orphans
+              docker system prune -f # Clean up unused Docker objects
+            EOF
+
+workflows:
+  version: 2
+  build_test_and_deploy:
+    jobs:
+      - build_and_test
+      - deploy:
+          requires:
+            - build_and_test
+          filters:
+            branches:
+              only: main # Deploy only on pushes to the main branch
