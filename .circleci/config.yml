@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Deploy to Kamatera
           command: |
-            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} << EOF
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} \<< EOF
               cd /root/app # Change to the directory where you want to deploy
               # Pull the latest code
               git pull origin master # Or your deployment branch
