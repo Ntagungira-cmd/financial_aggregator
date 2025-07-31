@@ -29,27 +29,27 @@ jobs:
       - run:
           name: Deploy to Kamatera
           command: |
-              ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 ${SSH_USER}@${SSH_HOST} << 'EOF'
-                cd ~/app
-                git pull origin master
-                
-                # Stop and remove all containers for this project
-                docker compose -f docker-compose.yml down -v
-                
-                # Clean up any remaining containers (only if they exist)
-                if [ "$(docker ps -aq)" ]; then
-                  docker stop $(docker ps -aq)
-                  docker rm $(docker ps -aq)
-                fi
-                
-                # Clean up unused networks and volumes
-                docker network prune -f
-                docker volume prune -f
-                
-                # Build and start the application
-                docker compose -f docker-compose.yml build --no-cache
-                docker compose -f docker-compose.yml up -d --scale app=3
-              EOF
+            ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 ${SSH_USER}@${SSH_HOST} \<< 'EOF'
+              cd ~/app
+              git pull origin master
+              
+              # Stop and remove all containers for this project
+              docker compose -f docker-compose.yml down -v
+              
+              # Clean up any remaining containers (only if they exist)
+              if [ "$(docker ps -aq)" ]; then
+                docker stop $(docker ps -aq)
+                docker rm $(docker ps -aq)
+              fi
+              
+              # Clean up unused networks and volumes
+              docker network prune -f
+              docker volume prune -f
+              
+              # Build and start the application
+              docker compose -f docker-compose.yml build --no-cache
+              docker compose -f docker-compose.yml up -d --scale app=3
+            EOF
 
 workflows:
   version: 2
