@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Node app
   app:
     build:
       context: .
@@ -9,6 +8,8 @@ services:
     # EXPOSE it to the internal Docker network
     expose:
       - "3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
     depends_on:
@@ -34,9 +35,9 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=your_db
-      - POSTGRES_USER=your_user
-      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     networks:
       - financial-network
 

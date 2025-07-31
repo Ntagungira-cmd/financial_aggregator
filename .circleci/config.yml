@@ -22,18 +22,18 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/base:stable # A base image for deployment steps
+      - image: cimg/base:stable
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "YOUR_SSH_KEY_FINGERPRINT" # Replace with your SSH key fingerprint
+            - "SHA256:kqGNwnee9s5lAOeMow5A/h57OtJsG5QlWNWZrixCek0 ntagungiraali@gmail.com"
       - run:
           name: Deploy to Kamatera
           command: |
             ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} << EOF
-              cd /path/to/your/app # Change to the directory where you want to deploy
+              cd /root/app # Change to the directory where you want to deploy
               # Pull the latest code
-              git pull origin main # Or your deployment branch
+              git pull origin master # Or your deployment branch
               # Build and restart Docker containers using the new 'docker compose' command
               docker compose -f docker-compose.yml build --no-cache
               docker compose -f docker-compose.yml up -d --remove-orphans
@@ -50,4 +50,4 @@ workflows:
             - build_and_test
           filters:
             branches:
-              only: main # Deploy only on pushes to the main branch
+              only: master
