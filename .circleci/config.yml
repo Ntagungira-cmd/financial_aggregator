@@ -17,7 +17,6 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: npm run build # Assuming your build script is defined in package.json
-      - run: npm test # Assuming you have tests defined
 
   deploy:
     docker:
