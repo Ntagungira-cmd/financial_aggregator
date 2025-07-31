@@ -3,11 +3,10 @@ version: 2.1
 jobs:
   build_and_test:
     docker:
-      - image: cimg/node:22.14.0 # Use a Node.js image for building
+      - image: cimg/node:22.14.0
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 28.3.3 # Specify Docker version for remote Docker
+      - setup_remote_docker
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package.json" }}
@@ -17,27 +16,25 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run: npm run build # Assuming your build script is defined in package.json
-      - run: npm test # Assuming you have tests defined
+      - run: npm run build
 
   deploy:
     docker:
       - image: cimg/base:stable
     steps:
+      - checkout
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:kqGNwnee9s5lAOeMow5A/h57OtJsG5QlWNWZrixCek0 ntagungiraali@gmail.com"
+            - "SHA256:kqGNwnee9s5lAOeMow5A/h57OtJsG5QlWNWZrixCek0"
       - run:
           name: Deploy to Kamatera
           command: |
-            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} << EOF
-              cd /root/app # Change to the directory where you want to deploy
-              # Pull the latest code
-              git pull origin master # Or your deployment branch
-              # Build and restart Docker containers using the new 'docker compose' command
+            ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 ${SSH_USER}@${SSH_HOST} \<< 'EOF'
+              cd /root/app
+              git pull origin master
               docker compose -f docker-compose.yml build --no-cache
               docker compose -f docker-compose.yml up -d --remove-orphans
-              docker system prune -f # Clean up unused Docker objects
+              docker system prune -f
             EOF
 
 workflows:
