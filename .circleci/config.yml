@@ -35,7 +35,7 @@ jobs:
              docker compose -f docker-compose.yml down -v --remove-orphans
              docker network prune -f  # clean up unused networks
              docker compose -f docker-compose.yml build --no-cache
-             docker compose -f docker-compose.yml up -d
+             docker compose -f docker-compose.yml up -d --scale app=3
             EOF
 
 workflows:
