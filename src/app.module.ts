@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { AppCacheModule } from './cache/cache.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CurrencyModule } from './currency/currency.module';
 import { StockModule } from './stock/stock.module';
@@ -18,11 +18,22 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    MailerModule.forRoot({
-      transport: 'smtps://user@domain.com:pass@smtp.domain.com',
-      defaults: {
-        from: '"nest-modules" <modules@nestjs.com>',
-      },
+    MailerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: configService.get<string>('GMAIL_USER'),
+            pass: configService.get<string>('GMAIL_APP_PASSWORD'),
+          },
+        },
+        defaults: {
+          from: `"Your App" <${configService.get<string>('GMAIL_USER')}>`,
+        },
+      }),
+      inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
     DatabaseModule,

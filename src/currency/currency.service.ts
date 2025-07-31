@@ -213,7 +213,7 @@ export class CurrencyService {
   ): Promise<CurrencyEntity[]> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-
+    console.log(`Fetching historical rates for ${base} to ${target} from ${startDate.toISOString()} to now`);
     return this.currencyRepository
       .createQueryBuilder('currency')
       .where('currency.baseCurrency = :base', { base })

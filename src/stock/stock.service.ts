@@ -30,47 +30,46 @@ export class StockService {
       return cached;
     }
 
-    const apiKey = this.configService.get('ALPHA_VANTAGE_API_KEY');
+    const apiKey = this.configService.get('MARKETSTACK_API_KEY');
     if (!apiKey) {
-      throw new Error('Alpha Vantage API key not configured');
+      throw new Error('Marketstack API key not configured');
     }
 
-    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
+    const url = `http://api.marketstack.com/v1/eod/latest?access_key=${apiKey}&symbols=${symbol}`;
 
     try {
       this.logger.log(`Fetching stock quote for ${symbol}`);
       const response = await firstValueFrom(this.httpService.get(url));
-      const quote = response.data['Global Quote'];
+      const data = response.data;
 
-      if (!quote || Object.keys(quote).length === 0) {
+      // Handle API limit errors
+      if (data.error) {
+        throw new Error(`Marketstack API error: ${data.error.message}`);
+      }
+
+      const quote = data.data?.[0];
+
+      if (!quote) {
         throw new Error(`No data found for symbol: ${symbol}`);
       }
 
-      // Handle API rate limit response
-      if (
-        response.data.Note &&
-        response.data.Note.includes('API call frequency')
-      ) {
-        throw new Error('API rate limit exceeded. Please try again later.');
-      }
-
       const processedData: StockQuoteResponse = {
-        symbol: quote['01. symbol'],
-        open: parseFloat(quote['02. open']) || 0,
-        high: parseFloat(quote['03. high']) || 0,
-        low: parseFloat(quote['04. low']) || 0,
-        price: parseFloat(quote['05. price']) || 0,
-        volume: parseInt(quote['06. volume']) || 0,
-        latestTradingDay: quote['07. latest trading day'] || '',
-        previousClose: parseFloat(quote['08. previous close']) || 0,
-        change: parseFloat(quote['09. change']) || 0,
-        changePercent: quote['10. change percent'] || '0%',
+        symbol: quote.symbol,
+        open: parseFloat(quote.open) || 0,
+        high: parseFloat(quote.high) || 0,
+        low: parseFloat(quote.low) || 0,
+        price: parseFloat(quote.close) || 0,
+        volume: parseInt(quote.volume) || 0,
+        latestTradingDay: quote.date || '',
+        previousClose: parseFloat(quote.previous_close) || 0,
+        change: parseFloat(quote.change) || 0,
+        changePercent: quote.change_percent
+          ? `${quote.change_percent.toFixed(2)}%`
+          : '0%',
       };
 
-      // Cache for 5 minutes
-      await this.cacheManager.set(cacheKey, processedData, 300);
+      await this.cacheManager.set(cacheKey, processedData, 30000);
 
-      // Save to database asynchronously
       this.saveStockToDB(processedData).catch((error) => {
         this.logger.error(
           `Failed to save stock data to DB for ${symbol}`,
@@ -84,10 +83,6 @@ export class StockService {
         `Failed to fetch stock quote for ${symbol}`,
         error.stack,
       );
-
-      if (error.message.includes('rate limit')) {
-        throw error;
-      }
 
       throw new Error(
         `Failed to fetch stock quote for ${symbol}: ${error.message}`,
@@ -146,7 +141,7 @@ export class StockService {
   }
 
   async getMarketIndices(): Promise<StockQuoteResponse[]> {
-    const indices = ['^GSPC', '^DJI', '^IXIC']; // S&P 500, Dow Jones, NASDAQ
+    const indices = ['DIA', 'QQQ', 'SPY']; // Dow Jones, NASDAQ, S&P 500
 
     try {
       const results = await Promise.allSettled(
@@ -180,34 +175,46 @@ export class StockService {
     }
   }
 
-  async searchStocks(query: string): Promise<any> {
+  async searchStocks(query: string): Promise<
+    Array<{
+      symbol: string;
+      name: string;
+      type: string;
+      region: string;
+      marketOpen: string;
+      marketClose: string;
+      timezone: string;
+      currency: string;
+      matchScore: string;
+    }>
+  > {
     const cacheKey = `stock_search_${query}`;
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager.get<typeof cached>(cacheKey);
 
     if (cached) {
       return cached;
     }
 
-    const apiKey = this.configService.get('ALPHA_VANTAGE_API_KEY');
-    const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${query}&apikey=${apiKey}`;
+    const apiKey = this.configService.get('MARKETSTACK_API_KEY');
+    const url = `http://api.marketstack.com/v1/tickers?access_key=${apiKey}&search=${query}`;
 
     try {
       const response = await firstValueFrom(this.httpService.get(url));
-      const matches = response.data.bestMatches || [];
+      const matches = response.data.data || [];
 
       const processedMatches = matches.slice(0, 10).map((match: any) => ({
-        symbol: match['1. symbol'],
-        name: match['2. name'],
-        type: match['3. type'],
-        region: match['4. region'],
-        marketOpen: match['5. marketOpen'],
-        marketClose: match['6. marketClose'],
-        timezone: match['7. timezone'],
-        currency: match['8. currency'],
-        matchScore: match['9. matchScore'],
+        symbol: match.symbol,
+        name: match.name,
+        type: match.hasOwnProperty('stock_exchange') ? 'equity' : 'unknown',
+        region: match.stock_exchange?.country || 'unknown',
+        marketOpen: match.stock_exchange?.acronym ? '09:30' : '',
+        marketClose: match.stock_exchange?.acronym ? '16:00' : '',
+        timezone: match.stock_exchange?.timezone || '',
+        currency: match.currency || 'USD',
+        matchScore: '1.0', // Marketstack doesn't return match score, so you could use a default
       }));
 
-      await this.cacheManager.set(cacheKey, processedMatches, 1800); // Cache for 30 minutes
+      await this.cacheManager.set(cacheKey, processedMatches, 18000); // Cache for 30 mins
       return processedMatches;
     } catch (error) {
       this.logger.error(
