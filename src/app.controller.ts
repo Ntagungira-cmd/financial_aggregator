@@ -6,6 +6,6 @@ export class AppController {
   @Get()
   getHost(): string {
     // Test if the load balancer is round robining requests between the instances
-    return `Hello from ${os.hostname()}`;
+    return `Hello from server instance: ${os.hostname()}`;
   }
 }
